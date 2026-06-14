@@ -250,6 +250,14 @@ def get_incident_history():
     """
     return local_db.get_history()
 
+@app.get("/")
+def home():
+    return {
+        "project": "Kavach-AI",
+        "status": "Backend Live",
+        "team": "HackPrix Season 3"
+    }
+
 
 @app.delete("/api/history")
 def clear_incident_history():
