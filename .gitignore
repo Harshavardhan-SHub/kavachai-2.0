@@ -1,0 +1,69 @@
+# System / OS Files
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Local Environment Secrets & Configs
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Dependencies & Package Managers
+node_modules/
+frontend/node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+
+# Build Directories & Bundler Outputs
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+frontend/build/
+dist/
+.vercel/
+.cache/
+
+# Python (Backend) Caches & Environments
+__pycache__/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/.pytest_cache/
+.venv/
+venv/
+env/
+backend/.venv/
+backend/venv/
+backend/env/
+
+# Databases & Cache Files
+backend/data/*.json
+*.sqlite
+*.db
+
+# Test Coverage & Logs
+coverage/
+.nyc_output/
+*.log
+
+# IDE & Editor Settings
+.gemini/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
