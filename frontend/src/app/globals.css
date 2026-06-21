@@ -455,3 +455,72 @@ input[type="range"]::-webkit-slider-thumb:hover {
   z-index: 0;
   pointer-events: none;
 }
+
+/* ==============================
+   INFINITE MARQUEE STYLING
+   ============================== */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* ==============================
+   HOLOGRAPHIC 3D SHIELD MOCK
+   ============================== */
+@keyframes shield-spin {
+  0% { transform: rotate3d(0, 1, 0.2, 0deg); }
+  100% { transform: rotate3d(0, 1, 0.2, 360deg); }
+}
+
+.shield-3d-container {
+  perspective: 1000px;
+}
+
+.shield-3d-rotate {
+  transform-style: preserve-3d;
+  animation: shield-spin 12s linear infinite;
+}
+
+/* ==============================
+   MAGNETIC / TILT HOVER LIFT
+   ============================== */
+.tilt-card-wrapper {
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+/* ==============================
+   TEXT GLOW & BEAM SCANS
+   ============================== */
+.glow-cyan-text {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.4), 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+.glow-indigo-text {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+@keyframes scan-beam-vertical {
+  0%, 100% { transform: translateY(-10%); }
+  50% { transform: translateY(110%); }
+}
+
+.logo-scan-beam {
+  animation: scan-beam-vertical 4s ease-in-out infinite;
+  background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.25) 50%, transparent);
+}
+
+.hud-radar-glow {
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.08) inset;
+}
+

@@ -12,6 +12,18 @@ async def send_verification_otp(phone_number: str) -> dict:
     if not phone_number:
         return {"status": "error", "message": "Phone number is required", "sent": False}
         
+    # Intercept demo number
+    clean_phone = phone_number.replace(" ", "").replace("-", "")
+    if clean_phone == "+919876543210":
+        logger.info(f"Demo OTP requested for {phone_number}")
+        return {
+            "status": "success",
+            "message": "Demo OTP verification simulated successfully.",
+            "phone_number": phone_number,
+            "sent": True,
+            "simulation": True
+        }
+        
     if USE_MOCK_VERIFY or not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_VERIFY_SERVICE_SID:
         # Mock mode OTP send
         print("\n" + "="*80)
@@ -82,6 +94,25 @@ async def check_verification_otp(phone_number: str, code: str) -> dict:
     if not phone_number or not code:
         return {"status": "error", "message": "Phone number and code are required", "verified": False}
         
+    # Intercept demo number
+    clean_phone = phone_number.replace(" ", "").replace("-", "")
+    if clean_phone == "+919876543210":
+        if code == "131426":
+            logger.info(f"Demo OTP verified successfully for {phone_number}")
+            return {
+                "status": "success",
+                "message": "Demo OTP verified successfully.",
+                "verified": True,
+                "simulation": True
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Invalid Demo OTP code. Use 131426.",
+                "verified": False,
+                "simulation": True
+            }
+            
     if USE_MOCK_VERIFY or not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_VERIFY_SERVICE_SID:
         # Mock mode OTP verify: accept any 6-digit code
         is_valid = len(code) == 6 and code.isdigit()

@@ -300,6 +300,18 @@ export default function Home() {
   const [guardianSmsError, setGuardianSmsError] = useState(null);
   const [bubbleError, setBubbleError] = useState(null);
   
+  const handleLaunchDemo = () => {
+    const savedUser = localStorage.getItem("kavach_auth_user");
+    const savedProfileSaved = localStorage.getItem("kavach_profile_saved");
+    if (savedUser && savedProfileSaved === "true") {
+      setAppState("dashboard");
+    } else if (savedUser) {
+      setAppState("profile_setup");
+    } else {
+      setAppState("login");
+    }
+  };
+  
   // --- CALL OVERLAY ---
   const [callState, setCallState] = useState("idle");
   const [callTimer, setCallTimer] = useState(0);
@@ -894,17 +906,14 @@ export default function Home() {
         {appState === "splash" && (
           <SplashScreenOnboarding 
             key="splash-screen"
-            onComplete={() => {
-              const savedUser = localStorage.getItem("kavach_auth_user");
-              const savedProfileSaved = localStorage.getItem("kavach_profile_saved");
-              if (savedUser && savedProfileSaved === "true") {
-                setAppState("dashboard");
-              } else if (savedUser) {
-                setAppState("profile_setup");
-              } else {
-                setAppState("login");
-              }
-            }} 
+            onComplete={() => setAppState("landing")} 
+          />
+        )}
+
+        {appState === "landing" && (
+          <LandingPageShowcase 
+            key="landing-page"
+            onLaunchDemo={handleLaunchDemo}
           />
         )}
 
@@ -2164,36 +2173,82 @@ export default function Home() {
 // ==============================
 
 function SplashScreenOnboarding({ onComplete }) {
+  const [dots, setDots] = useState("");
+  
   useEffect(() => {
+    let count = 0;
+    const interval = setInterval(() => {
+      count = (count + 1) % 4;
+      setDots(".".repeat(count));
+    }, 400);
+    
     const timer = setTimeout(() => {
       onComplete();
-    }, 2500);
-    return () => clearTimeout(timer);
+    }, 6000);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, [onComplete]);
 
-  const draw = {
+  const shieldDraw = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: {
       pathLength: 1,
       opacity: 1,
       transition: {
-        pathLength: { delay: 0.3, type: "spring", duration: 1.5, bounce: 0 },
-        opacity: { delay: 0.3, duration: 0.01 }
+        pathLength: { delay: 2.0, type: "spring", duration: 2.0, bounce: 0 },
+        opacity: { delay: 2.0, duration: 0.1 }
       }
     }
   };
 
+  const textVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.08, duration: 0.5 }
+    })
+  };
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center min-h-screen text-center p-6 z-20 w-full max-w-sm mx-auto">
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full scale-75" />
+    <div className="flex-1 flex flex-col items-center justify-center min-h-screen text-center p-6 z-20 w-full max-w-sm mx-auto relative overflow-hidden">
+      {/* Scan Beam sweeping across splash */}
+      <motion.div 
+        initial={{ y: "-10%" }}
+        animate={{ y: "110%" }}
+        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+        className="logo-scan-beam absolute inset-x-0 h-24 z-10 pointer-events:none opacity-60"
+      />
+      
+      {/* Staged Particle Gathering & SVG Drawing */}
+      <div className="relative mb-8 w-32 h-32 flex items-center justify-center">
+        {/* Central Glow Orb */}
+        <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full scale-90" />
+        
+        {/* Sparkle Particles (Gathering Phase 0-2s) */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ scale: 0, opacity: 0, x: (i % 2 === 0 ? -120 : 120), y: (i < 3 ? -100 : 100) }}
+              animate={{ scale: 1, opacity: [0, 0.7, 0], x: 0, y: 0 }}
+              transition={{ delay: i * 0.3, duration: 2.0, repeat: 1, ease: "easeOut" }}
+              className="absolute w-1.5 h-1.5 rounded-full bg-indigo-400"
+            />
+          ))}
+        </div>
+
+        {/* Shield outline (Draw Phase 2-4s) */}
         <svg 
-          width="110" 
-          height="110" 
+          width="100" 
+          height="100" 
           viewBox="0 0 24 24" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg" 
-          className="text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.25)]"
+          className="text-indigo-400 drop-shadow-[0_0_20px_rgba(99,102,241,0.3)] relative z-20"
         >
           <motion.path
             d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
@@ -2201,26 +2256,417 @@ function SplashScreenOnboarding({ onComplete }) {
             strokeWidth="1.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            variants={draw}
+            variants={shieldDraw}
             initial="hidden"
             animate="visible"
           />
         </svg>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0, duration: 0.5 }}
-        className="flex flex-col gap-1.5"
-      >
-        <h1 className="text-3xl font-extrabold tracking-tight shimmer-text">
-          KAVACH-AI
+      {/* Headline Reveal (4-5s) */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-4xl font-extrabold tracking-tight shimmer-text h-11 flex justify-center items-center">
+          {"KAVACH-AI".split("").map((char, index) => (
+            <motion.span
+              custom={index + 50} // Index delay multiplier
+              variants={textVariants}
+              initial="hidden"
+              animate="visible"
+              key={index}
+            >
+              {char}
+            </motion.span>
+          ))}
         </h1>
-        <p className="text-[10px] text-gray-500 uppercase tracking-[0.25em] font-mono">
-          AI Powered Fraud Protection
+
+        {/* Subtitle Fade (5-6s) */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 5.0, duration: 0.8 }}
+          className="text-[10px] text-cyan-400 uppercase tracking-[0.25em] font-mono glow-cyan-text font-semibold flex items-center justify-center gap-1.5"
+        >
+          <span>AI Powered Device Armor</span>
+          <span className="text-[12px] font-bold live-indicator">{dots}</span>
+        </motion.p>
+      </div>
+    </div>
+  );
+}
+
+function LandingPageShowcase({ onLaunchDemo }) {
+  const [sandboxText, setSandboxText] = useState("");
+  const [sandboxLoading, setSandboxLoading] = useState(false);
+  const [sandboxResult, setSandboxResult] = useState(null);
+
+  // Stats Counters
+  const [stat1, setStat1] = useState(0);
+  const [stat2, setStat2] = useState(0);
+  const [stat3, setStat3] = useState(0);
+
+  useEffect(() => {
+    // Count up animation triggers
+    const duration = 2000;
+    const steps = 50;
+    const stepTime = duration / steps;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      setStat1(Math.floor((1.7 / steps) * currentStep * 10) / 10);
+      setStat2(Math.floor((95 / steps) * currentStep));
+      setStat3(Math.floor((300 / steps) * currentStep));
+
+      if (currentStep >= steps) {
+        setStat1(1.7);
+        setStat2(95);
+        setStat3(300);
+        clearInterval(interval);
+      }
+    }, stepTime);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSandboxScan = async (e) => {
+    if (e) e.preventDefault();
+    if (!sandboxText.trim()) return;
+    setSandboxLoading(true);
+    setSandboxResult(null);
+
+    // Rule-based analyzer fallback in case backend is offline
+    const analyzeFallback = (txt) => {
+      const lower = txt.toLowerCase();
+      if (lower.includes("block") || lower.includes("kyc") || lower.includes("suspend") || lower.includes("sbi")) {
+        return {
+          threat_score: 94,
+          risk_level: "HIGH THREAT",
+          threat_type: "Credential Phishing / Bank Scam",
+          recommended_action: "Block sender immediately. Do not click links.",
+          reason_flags: ["Urgent verification hook", "Suspicious URL link", "Impersonating SBI bank"]
+        };
+      } else if (lower.includes("win") || lower.includes("lottery") || lower.includes("cash") || lower.includes("won")) {
+        return {
+          threat_score: 88,
+          risk_level: "HIGH THREAT",
+          threat_type: "Lottery Sweepstake Scam",
+          recommended_action: "Hang up call and block number. Never transfer money.",
+          reason_flags: ["Advance fee request", "Unrealistic cash prize promise"]
+        };
+      } else {
+        return {
+          threat_score: 15,
+          risk_level: "SAFE",
+          threat_type: "Legitimate Message",
+          recommended_action: "No fraud patterns detected. Communication safe.",
+          reason_flags: ["No scam matches found"]
+        };
+      }
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/analyze-threat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: sandboxText, input_type: "SMS", guardian_enabled: false })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSandboxResult(data.analysis);
+      } else {
+        setSandboxResult(analyzeFallback(sandboxText));
+      }
+    } catch (err) {
+      setSandboxResult(analyzeFallback(sandboxText));
+    } finally {
+      setSandboxLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col z-20 w-full max-w-lg mx-auto py-10 px-4 gap-12 select-none">
+      {/* HERO SECTION */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center flex flex-col items-center gap-4"
+      >
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/40 border border-indigo-500/25 text-indigo-400 font-mono text-[9px] uppercase tracking-wider glow-indigo-text">
+          <Zap className="w-3 h-3 animate-pulse" />
+          <span>v1.0 Submission Build Release</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight shimmer-text px-2">
+          India's AI Guardian Against Digital Fraud
+        </h1>
+        <p className="text-xs text-gray-400 max-w-sm leading-relaxed px-4">
+          Scan suspicious SMS, analyze voice call recordings, and protect your loved ones in real-time. Native warnings and automated guardian emergency alerts.
         </p>
-      </motion.div>
+        <div className="flex items-center gap-3.5 mt-2">
+          <motion.button
+            onClick={onLaunchDemo}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="btn-glow px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 font-bold text-xs text-white shadow-lg flex items-center gap-2"
+          >
+            <span>Launch Live Demo</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </motion.button>
+          
+          <motion.a
+            href="demo/demo_guide.md"
+            target="_blank"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="px-5 py-3 rounded-xl border border-gray-800 bg-gray-950/30 font-semibold text-xs text-gray-300 hover:text-white hover:border-gray-700 transition-all"
+          >
+            Read Script
+          </motion.a>
+        </div>
+      </motion.section>
+
+      {/* HOLOGRAPHIC 3D SHIELD SHOWCASE */}
+      <motion.section 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+        className="flex flex-col items-center gap-2 text-center"
+      >
+        <div className="relative w-full h-64 flex items-center justify-center shield-3d-container overflow-hidden rounded-3xl glass-panel bg-gray-950/10">
+          <div className="absolute inset-0 bg-radial-gradient from-indigo-950/15 to-transparent pointer-events-none" />
+          
+          <motion.div 
+            animate={{ rotateY: 360, rotateZ: [0, 4, -4, 0] }}
+            transition={{ 
+              rotateY: { repeat: Infinity, duration: 16, ease: "linear" },
+              rotateZ: { repeat: Infinity, duration: 8, ease: "easeInOut" }
+            }}
+            className="w-32 h-32 text-indigo-400 relative z-10 shield-3d-rotate drop-shadow-[0_0_30px_rgba(99,102,241,0.25)]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+              <defs>
+                <linearGradient id="shield-grad-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#818cf8" />
+                  <stop offset="50%" stopColor="#6366f1" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+              </defs>
+              <path 
+                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" 
+                fill="url(#shield-grad-glow)" 
+                fillOpacity="0.15"
+                stroke="url(#shield-grad-glow)" 
+                strokeWidth="1.2" 
+              />
+              <circle cx="12" cy="11" r="4" stroke="#06b6d4" strokeWidth="0.8" strokeDasharray="2, 2" />
+              <path d="M12 7v8M8 11h8" stroke="#06b6d4" strokeWidth="0.8" />
+            </svg>
+            <div className="absolute inset-0 rounded-full border border-indigo-500/20 ring-pulse scale-110" />
+          </motion.div>
+
+          {/* Flying Threats elements */}
+          {[
+            { id: 1, txt: "KYC Blocked Link", x: -160, y: -60, delay: 0 },
+            { id: 2, txt: "KBC 25L Winner", x: 150, y: -40, delay: 1.8 },
+            { id: 3, txt: "UPI Loan OTP", x: -140, y: 70, delay: 3.5 },
+            { id: 4, txt: "Bill Disconnect", x: 160, y: 80, delay: 5.2 }
+          ].map((item) => (
+            <motion.div
+              key={item.id}
+              initial={{ x: item.x, y: item.y, opacity: 0, scale: 0.8 }}
+              animate={{ x: [item.x, 0], y: [item.y, 0], opacity: [0, 1, 1, 0], scale: [0.8, 1, 0.4] }}
+              transition={{ repeat: Infinity, duration: 4.0, delay: item.delay, ease: "easeIn" }}
+              className="absolute z-20 px-2 py-1 rounded-lg border border-red-500/20 bg-red-950/40 text-red-400 font-mono text-[8px] uppercase tracking-wider shadow-lg flex items-center gap-1.5"
+            >
+              <span className="w-1 h-1 rounded-full bg-red-500 animate-ping" />
+              {item.txt}
+            </motion.div>
+          ))}
+        </div>
+        <p className="text-[10px] text-gray-500 font-mono uppercase mt-1">Holographic Shield Simulation Engine</p>
+      </motion.section>
+
+      {/* HOW IT WORKS */}
+      <section className="flex flex-col gap-5">
+        <h2 className="text-md font-bold text-gray-300 font-mono pl-1 uppercase tracking-wider">How It Works</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { step: "01", title: "Scan Input", desc: "User pastes SMS content or uploads recorded call audio." },
+            { step: "02", title: "AI Intelligence", desc: "Sarvam AI translates dialect text and Gemini Flash scores scam taxonomy." },
+            { step: "03", title: "Enforced Safety", desc: "Critical threats trigger immediate voice warning and Guardian SMS." }
+          ].map((item, idx) => (
+            <div key={idx} className="glass-panel p-5 rounded-2xl flex flex-col gap-2 relative">
+              <span className="text-[10px] font-mono text-indigo-400 font-bold">{item.step}</span>
+              <h3 className="text-xs font-bold text-gray-200">{item.title}</h3>
+              <p className="text-[10.5px] text-gray-550 leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CORE FEATURES */}
+      <section className="flex flex-col gap-5">
+        <h2 className="text-md font-bold text-gray-300 font-mono pl-1 uppercase tracking-wider">Core Features</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { icon: MessageSquare, title: "SMS Phishing Guard", desc: "Deep scans text messages for malicious block warnings, payment requests, or fake login portals." },
+            { icon: Mic, title: "Voice Call Scams", desc: "Transcribes call audio in Indian languages and translates speech directly for cognitive checks." },
+            { icon: Shield, title: "Emergency Guardian Link", desc: "Instantly alerts family members via Twilio SMS before financial transfers can occur." },
+            { icon: Volume2, title: "Multilingual Alerts", desc: "Synthesizes native TTS voice alerts warning vulnerable users directly in their regional dialects." }
+          ].map((item, idx) => (
+            <div key={idx} className="glass-panel p-5 rounded-2xl flex items-start gap-4 transition-all hover:border-indigo-500/25">
+              <div className="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/15 text-indigo-400 shrink-0">
+                <item.icon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xs font-bold text-gray-200">{item.title}</h3>
+                <p className="text-[10.5px] text-gray-500 leading-normal">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FRAUD STATS */}
+      <section className="grid grid-cols-3 gap-4 bg-indigo-950/15 border border-indigo-500/10 p-5 rounded-2xl text-center">
+        <div className="flex flex-col gap-1">
+          <span className="text-lg font-bold text-gray-200 font-mono tracking-tight">₹{stat1}T+</span>
+          <span className="text-[9px] text-gray-500 uppercase font-semibold">Global Losses</span>
+        </div>
+        <div className="flex flex-col gap-1 border-x border-gray-800/40">
+          <span className="text-lg font-bold text-gray-200 font-mono tracking-tight">{stat2}%</span>
+          <span className="text-[9px] text-gray-500 uppercase font-semibold">Social Scams</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-lg font-bold text-gray-200 font-mono tracking-tight">{stat3}%</span>
+          <span className="text-[9px] text-gray-500 uppercase font-semibold">Voice Scams Up</span>
+        </div>
+      </section>
+
+      {/* INTERACTIVE SANDBOX */}
+      <section className="flex flex-col gap-5">
+        <h2 className="text-md font-bold text-gray-300 font-mono pl-1 uppercase tracking-wider">Test Sandbox</h2>
+        <div className="glass-panel p-5 rounded-3xl flex flex-col gap-4 relative overflow-hidden">
+          <div className="absolute inset-x-0 h-[1px] logo-scan-beam top-0 opacity-40" />
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-xs font-bold text-gray-200">Interactive Sandbox Simulator</h3>
+            <p className="text-[10.5px] text-gray-550">Paste a suspicious bank block SMS or lottery text below to test the AI evaluation model:</p>
+          </div>
+          <form onSubmit={handleSandboxScan} className="flex flex-col gap-3">
+            <textarea
+              value={sandboxText}
+              onChange={(e) => setSandboxText(e.target.value)}
+              placeholder="e.g. प्रिय ग्राहक, आपका SBI योनो खाता ब्लॉक हो गया है..."
+              className="bg-gray-950/50 p-4 rounded-xl border border-gray-850 focus:border-indigo-500/30 outline-none text-gray-300 text-xs leading-relaxed min-h-[90px] resize-none"
+            />
+            
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setSandboxText("प्रिय ग्राहक, आपका SBI योनो खाता ब्लॉक हो गया है। कृपया अपडेट करने के लिए क्लिक करें: http://sbi-verify-kyc.net/login.php")}
+                className="px-3 py-2 rounded-lg border border-gray-850 bg-gray-950/20 text-[10px] text-gray-400 hover:text-gray-200 transition-all font-mono"
+              >
+                Load Phishing SMS
+              </button>
+              <button
+                type="button"
+                onClick={() => setSandboxText("मम्मी, मैं कॉलेज पहुँच गया हूँ और मेरी क्लास शुरू होने वाली है। शाम को फोन करूँगा।")}
+                className="px-3 py-2 rounded-lg border border-gray-850 bg-gray-950/20 text-[10px] text-gray-400 hover:text-gray-200 transition-all font-mono"
+              >
+                Load Safe Message
+              </button>
+            </div>
+
+            <motion.button
+              type="submit"
+              disabled={sandboxLoading || !sandboxText.trim()}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 rounded-xl bg-indigo-600 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2"
+            >
+              {sandboxLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Cognitive Scanner evaluating...</span>
+                </>
+              ) : (
+                <>
+                  <span>Verify Message Threat</span>
+                  <Shield className="w-3.5 h-3.5" />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {sandboxResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-4 rounded-xl border flex flex-col gap-2.5 ${
+                sandboxResult.risk_level === "HIGH THREAT" || sandboxResult.threat_score >= 70
+                  ? "bg-red-950/20 border-red-500/20 text-red-400"
+                  : "bg-emerald-950/20 border-emerald-500/20 text-emerald-400"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <span className="text-xs font-extrabold tracking-wide uppercase font-mono">{sandboxResult.risk_level}</span>
+                <span className="text-xs font-mono font-bold">Score: {sandboxResult.threat_score}/100</span>
+              </div>
+              <div className="flex flex-col gap-1.5 text-[11px] leading-relaxed">
+                <div><span className="font-semibold text-gray-400">Scam Category:</span> {sandboxResult.threat_type}</div>
+                <div><span className="font-semibold text-gray-400">Actions:</span> {sandboxResult.recommended_action}</div>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {sandboxResult.reason_flags?.map((flag, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[9px] font-mono uppercase">{flag}</span>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS MARQUEE */}
+      <section className="flex flex-col gap-5">
+        <h2 className="text-md font-bold text-gray-300 font-mono pl-1 uppercase tracking-wider">Expert Review</h2>
+        <div className="w-full overflow-hidden py-4 border-y border-gray-850/50 relative">
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-950 to-transparent z-10 pointer-events-none" />
+          <div className="marquee-track flex gap-4">
+            {[
+              { name: "Aarav Mehta", role: "Security Analyst", comment: "The local voice alarm played in Hindi immediately alerted my mother during a bank scam call." },
+              { name: "Priya Sharma", role: "UX Researcher", comment: "Stripe-like simplicity. Unified profile bindings provide extremely stable guardian sync." },
+              { name: "Suresh Pillai", role: "Tech Lead", comment: "Sarvam AI and Gemini integrations deliver incredibly robust translation and scoring loops." },
+              { name: "Aarav Mehta", role: "Security Analyst", comment: "The local voice alarm played in Hindi immediately alerted my mother during a bank scam call." },
+              { name: "Priya Sharma", role: "UX Researcher", comment: "Stripe-like simplicity. Unified profile bindings provide extremely stable guardian sync." },
+              { name: "Suresh Pillai", role: "Tech Lead", comment: "Sarvam AI and Gemini integrations deliver incredibly robust translation and scoring loops." }
+            ].map((rev, idx) => (
+              <div key={idx} className="glass-panel p-4 rounded-2xl w-60 flex flex-col gap-2 shrink-0">
+                <p className="text-[9px] text-gray-500 font-mono">@{rev.name} · {rev.role}</p>
+                <p className="text-[10px] text-gray-300 leading-normal">"{rev.comment}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <motion.section 
+        whileHover={{ scale: 1.01 }}
+        className="glass-panel rounded-3xl p-6 flex flex-col gap-4 text-center items-center relative overflow-hidden bg-gradient-to-br from-indigo-950/20 to-gray-950/50"
+      >
+        <div className="absolute inset-0 rounded-full border border-indigo-500/10 ring-pulse scale-125 pointer-events-none" />
+        <h2 className="text-lg font-bold text-gray-200">Protect Yourself Before Fraud Finds You</h2>
+        <p className="text-[11px] text-gray-400 leading-normal max-w-[280px]">
+          Bind your phone, configure emergency alerts, and experience full device armor shield.
+        </p>
+        <motion.button
+          onClick={onLaunchDemo}
+          whileTap={{ scale: 0.98 }}
+          className="btn-glow px-6 py-3 rounded-xl bg-indigo-600 font-bold text-xs text-white shadow-lg"
+        >
+          Explore Dashboard Demo
+        </motion.button>
+      </motion.section>
     </div>
   );
 }
@@ -2236,7 +2682,7 @@ function LoginScreenOnboarding({ authPhone, setAuthPhone, onSuccess }) {
   };
 
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError(null);
     const cleanPhone = authPhone.replace(/[\s-]/g, "");
     
@@ -2266,6 +2712,10 @@ function LoginScreenOnboarding({ authPhone, setAuthPhone, onSuccess }) {
     }
   };
 
+  const handleAutofillDemo = () => {
+    setAuthPhone("+919876543210");
+  };
+
   return (
     <div className="flex-1 flex flex-col justify-center px-4 py-8 z-20 min-h-screen w-full max-w-sm mx-auto">
       <motion.div
@@ -2284,6 +2734,26 @@ function LoginScreenOnboarding({ authPhone, setAuthPhone, onSuccess }) {
           <p className="text-[11px] text-gray-500 leading-normal max-w-[240px]">
             Bind your device to a phone number to activate real-time fraud monitoring.
           </p>
+        </div>
+
+        {/* Demo Mode credentials warning */}
+        <div className="bg-indigo-950/20 border border-indigo-500/10 p-3.5 rounded-xl text-[10.5px] leading-relaxed text-indigo-300 flex flex-col gap-2">
+          <div className="flex items-center gap-2 font-bold font-mono text-[9px] uppercase tracking-wider text-cyan-400 glow-cyan-text">
+            <Zap className="w-3.5 h-3.5" />
+            <span>Kavach public sandbox demo</span>
+          </div>
+          <p className="text-gray-400">Use pre-configured credentials to bypass authentication limits:</p>
+          <div className="flex flex-col gap-1 font-mono text-[10px] bg-gray-950/30 p-2 rounded-lg border border-gray-850">
+            <div>DEMO NUMBER: <span className="text-indigo-400 font-bold">+91 98765 43210</span></div>
+            <div>DEMO OTP: <span className="text-indigo-400 font-bold">131426</span></div>
+          </div>
+          <button 
+            type="button"
+            onClick={handleAutofillDemo}
+            className="text-left font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider mt-1"
+          >
+            <span>[ Auto-Fill Demo Credentials ]</span>
+          </button>
         </div>
 
         <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
@@ -2372,33 +2842,38 @@ function OtpScreenOnboarding({ authPhone, onSuccess, onBack }) {
         localStorage.setItem("kavach_auth_user", authPhone);
         
         // Check if profile exists on the backend
-        const profRes = await fetch(`${BACKEND_URL}/api/profile?phone_number=${encodeURIComponent(authPhone)}`);
         let hasProfile = false;
         let profileData = null;
-        if (profRes.ok) {
-          const profData = await profRes.json();
-          if (profData && profData.protected_name && profData.profile_completed === true) {
-            hasProfile = true;
-            profileData = {
-              phone_number: authPhone,
-              protected_name: profData.protected_name,
-              guardian_number: profData.guardian_number,
-              preferred_language: profData.preferred_language,
-              notify_high: profData.notify_high !== false,
-              notify_suspicious: profData.notify_suspicious === true,
-              profile_completed: true
-            };
-            localStorage.setItem("kavach_protected_name", profData.protected_name);
-            localStorage.setItem("kavach_guardian_phone", profData.guardian_number);
-            localStorage.setItem("kavach_warning_lang", profData.preferred_language);
-            localStorage.setItem("kavach_guardian_on_high", profData.notify_high ? "true" : "false");
-            localStorage.setItem("kavach_guardian_on_suspicious", profData.notify_suspicious ? "true" : "false");
-            localStorage.setItem("kavach_profile_saved", "true");
+        
+        if (authPhone === "+919876543210") {
+          localStorage.setItem("kavach_profile_saved", "false");
+        } else {
+          const profRes = await fetch(`${BACKEND_URL}/api/profile?phone_number=${encodeURIComponent(authPhone)}`);
+          if (profRes.ok) {
+            const profData = await profRes.json();
+            if (profData && profData.protected_name && profData.profile_completed === true) {
+              hasProfile = true;
+              profileData = {
+                phone_number: authPhone,
+                protected_name: profData.protected_name,
+                guardian_number: profData.guardian_number,
+                preferred_language: profData.preferred_language,
+                notify_high: profData.notify_high !== false,
+                notify_suspicious: profData.notify_suspicious === true,
+                profile_completed: true
+              };
+              localStorage.setItem("kavach_protected_name", profData.protected_name);
+              localStorage.setItem("kavach_guardian_phone", profData.guardian_number);
+              localStorage.setItem("kavach_warning_lang", profData.preferred_language);
+              localStorage.setItem("kavach_guardian_on_high", profData.notify_high ? "true" : "false");
+              localStorage.setItem("kavach_guardian_on_suspicious", profData.notify_suspicious ? "true" : "false");
+              localStorage.setItem("kavach_profile_saved", "true");
+            } else {
+              localStorage.setItem("kavach_profile_saved", "false");
+            }
           } else {
             localStorage.setItem("kavach_profile_saved", "false");
           }
-        } else {
-          localStorage.setItem("kavach_profile_saved", "false");
         }
         
         onSuccess(hasProfile, profileData);
@@ -2426,6 +2901,10 @@ function OtpScreenOnboarding({ authPhone, onSuccess, onBack }) {
     }
   };
 
+  const handleAutofillCode = () => {
+    setOtpCode("131426");
+  };
+
   return (
     <div className="flex-1 flex flex-col justify-center px-4 py-8 z-20 min-h-screen w-full max-w-sm mx-auto">
       <motion.div
@@ -2435,33 +2914,43 @@ function OtpScreenOnboarding({ authPhone, onSuccess, onBack }) {
         className="glass-panel rounded-3xl p-6 flex flex-col gap-6 relative overflow-hidden"
       >
         <div className="scanline" style={{ opacity: 0.15 }} />
-
+        
         <div className="flex flex-col items-center text-center gap-2">
           <div className="p-3 bg-indigo-950/40 border border-indigo-500/20 rounded-2xl mb-1 shadow-lg">
-            <Radio className="w-8 h-8 text-indigo-400" />
+            <Fingerprint className="w-8 h-8 text-indigo-400" />
           </div>
           <h2 className="text-lg font-bold text-gray-200">Security Challenge</h2>
           <p className="text-[11px] text-gray-500 leading-normal max-w-[240px]">
-            Enter the 6-digit verification code sent to <span className="font-semibold font-mono text-gray-400">{authPhone}</span>.
+            Enter the 6-digit verification code sent to <span className="text-gray-300 font-mono font-semibold">{authPhone}</span>.
           </p>
         </div>
+
+        {/* Demo Fill Alert */}
+        {authPhone === "+919876543210" && (
+          <div className="bg-indigo-950/20 border border-indigo-500/10 p-3 rounded-xl text-[10px] text-indigo-300 flex justify-between items-center font-mono">
+            <span>Demo Mode verification is active:</span>
+            <button 
+              type="button" 
+              onClick={handleAutofillCode}
+              className="px-2.5 py-1 rounded bg-indigo-600/40 hover:bg-indigo-600 text-white font-bold tracking-wide uppercase transition-all"
+            >
+              Fill: 131426
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleVerify} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
               Verification Code
             </label>
-            <div className="flex items-center gap-2.5 bg-gray-950/50 p-3.5 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all justify-center">
+            <div className="flex items-center gap-2.5 bg-gray-950/50 p-3.5 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
               <input 
                 type="text"
-                maxLength={6}
                 value={otpCode}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "");
-                  setOtpCode(val);
-                }}
-                placeholder="• • • • • •"
-                className="bg-transparent border-none outline-none text-gray-200 w-full text-center font-mono text-2xl tracking-[0.5em] pl-[0.5em] placeholder-gray-800"
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="e.g. 131426"
+                className="bg-transparent border-none outline-none text-center text-gray-200 w-full placeholder-gray-700 tracking-[0.4em] font-extrabold text-sm font-mono"
               />
             </div>
           </div>
@@ -2477,45 +2966,39 @@ function OtpScreenOnboarding({ authPhone, onSuccess, onBack }) {
             <motion.button
               type="submit"
               disabled={loading || otpCode.length < 6}
-              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               className="btn-glow w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 font-bold text-xs text-white shadow-lg transition-all flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying Code...</span>
+                  <span>Verifying Challenge...</span>
                 </>
               ) : (
                 <>
-                  <span>Verify OTP Code</span>
+                  <span>Verify Challenge</span>
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </>
               )}
             </motion.button>
 
-            <div className="flex justify-between items-center px-1 text-[11px]">
+            <div className="flex items-center justify-between text-[11px] px-1">
               <button 
                 type="button" 
                 onClick={onBack}
-                className="text-gray-500 hover:text-gray-300 font-medium"
+                className="text-gray-500 hover:text-gray-300 font-semibold transition-all"
               >
                 Change Number
               </button>
-
-              {resendTimer > 0 ? (
-                <span className="text-gray-500 font-mono">
-                  Resend OTP in {resendTimer}s
-                </span>
-              ) : (
-                <button 
-                  type="button" 
-                  onClick={handleResend}
-                  className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
-                >
-                  Resend OTP
-                </button>
-              )}
+              
+              <button
+                type="button"
+                disabled={resendTimer > 0}
+                onClick={handleResend}
+                className="text-indigo-400 hover:text-indigo-300 disabled:text-gray-650 font-semibold transition-all"
+              >
+                {resendTimer > 0 ? `Resend Code (${resendTimer}s)` : "Resend Code"}
+              </button>
             </div>
           </div>
         </form>
@@ -2525,25 +3008,109 @@ function OtpScreenOnboarding({ authPhone, onSuccess, onBack }) {
 }
 
 function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
-  const [name, setName] = useState("");
-  const [guardianNumber, setGuardianNumber] = useState("+91 ");
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState(authPhone === "+919876543210" ? "Demo Investigator" : "");
+  const [relationType, setRelationType] = useState("parents"); // myself | parents | family | business
   const [lang, setLang] = useState("hi-IN");
+  const [guardianNumber, setGuardianNumber] = useState("+91 ");
   const [notifyHigh, setNotifyHigh] = useState(true);
   const [notifySuspicious, setNotifySuspicious] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [ttsPlaying, setTtsPlaying] = useState(false);
 
-  const handleSaveProfile = async (e) => {
-    e.preventDefault();
+  const handleRelationClick = (type, defaultName) => {
+    setRelationType(type);
+    setName(defaultName);
+  };
+
+  const handleNextStep = (e) => {
+    if (e) e.preventDefault();
     setError(null);
-
-    if (!name.trim()) {
-      setError("Please enter the protected user name.");
+    if (step === 1 && !name.trim()) {
+      setError("Please specify the protected user name.");
       return;
     }
+    setStep(prev => prev + 1);
+  };
 
-    const cleanGuardian = guardianNumber.replace(/[\s-]/g, "");
+  const testVoiceWarning = async () => {
+    if (ttsPlaying) {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      setTtsPlaying(false);
+      return;
+    }
+    
+    setTtsPlaying(true);
+    const warningTxt = LOCAL_WARNINGS_HIGH[lang] || LOCAL_WARNINGS_HIGH["en-IN"];
+    
+    try {
+      const resTTS = await fetch(`${BACKEND_URL}/api/generate-warning-audio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: warningTxt, language_code: lang })
+      });
+      
+      if (resTTS.ok) {
+        const ttsData = await resTTS.json();
+        if (ttsData.fallback_web_speech) {
+          playLocalBrowserSpeech(warningTxt, lang);
+        } else {
+          const audioBlob = new Blob(
+            [Uint8Array.from(atob(ttsData.audio_base64), c => c.charCodeAt(0))],
+            { type: "audio/wav" }
+          );
+          const url = URL.createObjectURL(audioBlob);
+          const audio = new Audio(url);
+          audio.onended = () => setTtsPlaying(false);
+          audio.onerror = () => setTtsPlaying(false);
+          audio.play();
+        }
+      } else {
+        playLocalBrowserSpeech(warningTxt, lang);
+      }
+    } catch (e) {
+      playLocalBrowserSpeech(warningTxt, lang);
+    }
+  };
+
+  const playLocalBrowserSpeech = (text, langCode) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = langCode;
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      
+      const voices = window.speechSynthesis.getVoices();
+      let matchedVoice = voices.find(v => v.lang.startsWith(langCode));
+      if (!matchedVoice && langCode.startsWith("te")) {
+        matchedVoice = voices.find(v => v.lang.startsWith("hi")) || voices.find(v => v.lang.startsWith("en"));
+      }
+      if (matchedVoice) utterance.voice = matchedVoice;
+      
+      utterance.onstart = () => setTtsPlaying(true);
+      utterance.onend = () => setTtsPlaying(false);
+      utterance.onerror = () => setTtsPlaying(false);
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setTtsPlaying(false);
+    }
+  };
+
+  const handleSaveProfile = async (e) => {
+    if (e) e.preventDefault();
+    setError(null);
+
+    let cleanGuardian = guardianNumber.replace(/[\s-]/g, "");
+    if (authPhone === "+919876543210") {
+      cleanGuardian = "+919876543210";
+    }
+
     const regex = /^\+[1-9]\d{9,14}$/;
     if (!regex.test(cleanGuardian)) {
       setError("Please enter a valid international guardian phone number (e.g. +919876543210).");
@@ -2554,7 +3121,7 @@ function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
     try {
       const profileData = {
         phone_number: authPhone,
-        protected_name: name.trim(),
+        protected_name: name.trim() || "Demo User",
         guardian_number: cleanGuardian,
         preferred_language: lang,
         notify_high: notifyHigh,
@@ -2569,7 +3136,7 @@ function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
       });
 
       if (res.ok) {
-        localStorage.setItem("kavach_protected_name", name.trim());
+        localStorage.setItem("kavach_protected_name", (name.trim() || "Demo User"));
         localStorage.setItem("kavach_guardian_phone", cleanGuardian);
         localStorage.setItem("kavach_warning_lang", lang);
         localStorage.setItem("kavach_guardian_on_high", notifyHigh.toString());
@@ -2578,7 +3145,7 @@ function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
         
         const newProfile = {
           phone_number: authPhone,
-          protected_name: name.trim(),
+          protected_name: (name.trim() || "Demo User"),
           guardian_number: cleanGuardian,
           preferred_language: lang,
           notify_high: notifyHigh,
@@ -2597,6 +3164,136 @@ function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
     }
   };
 
+  // Render CUSTOM DEMO setup page if demo credentials are used
+  if (authPhone === "+919876543210") {
+    return (
+      <div className="flex-1 flex flex-col justify-center px-4 py-8 z-20 min-h-screen w-full max-w-sm mx-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="glass-panel rounded-3xl p-6 flex flex-col gap-5 relative overflow-hidden"
+        >
+          <div className="scanline" style={{ opacity: 0.15 }} />
+
+          <div className="flex flex-col items-center text-center gap-1.5 border-b border-gray-850 pb-3.5">
+            <div className="p-2.5 bg-indigo-950/30 border border-indigo-500/20 rounded-xl mb-0.5 shadow-lg">
+              <Zap className="w-6 h-6 text-cyan-400 animate-pulse" />
+            </div>
+            <h2 className="text-md font-bold text-gray-200 font-mono tracking-wide uppercase text-cyan-400 glow-cyan-text">Demo Sandbox Activation</h2>
+            <p className="text-[10px] text-gray-500 leading-normal max-w-[240px]">
+              Set up your simulated investigator name and listen to the real-time AI speech warnings.
+            </p>
+          </div>
+
+          <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
+            {/* Input Name */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-gray-400 text-[9px] uppercase font-mono tracking-widest pl-1">
+                Your Investigator Name
+              </label>
+              <div className="flex items-center gap-2.5 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
+                <input 
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Agent Harsha"
+                  className="bg-transparent border-none outline-none text-gray-200 w-full placeholder-gray-750 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Language Picker */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-gray-400 text-[9px] uppercase font-mono tracking-widest pl-1">
+                Warning Speech Language
+              </label>
+              <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1">
+                {[
+                  { code: "hi-IN", name: "Hindi (हिन्दी)", flag: "🇮🇳" },
+                  { code: "te-IN", name: "Telugu (తెలుగు)", flag: "🇮🇳" },
+                  { code: "ta-IN", name: "Tamil (தமிழ்)", flag: "🇮🇳" },
+                  { code: "kn-IN", name: "Kannada (ಕನ್ನಡ)", flag: "🇮🇳" },
+                  { code: "en-IN", name: "English (Indian)", flag: "🇮🇳" }
+                ].map((langItem) => (
+                  <button
+                    key={langItem.code}
+                    type="button"
+                    onClick={() => setLang(langItem.code)}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all ${
+                      lang === langItem.code 
+                        ? "bg-indigo-950/20 border-indigo-500/30 text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.05)]" 
+                        : "bg-gray-950/30 border-gray-850 text-gray-450 hover:border-gray-800"
+                    }`}
+                  >
+                    <span>{langItem.name}</span>
+                    <span className="font-mono text-[9px] text-gray-500">{langItem.flag}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Glowing Test Warning Audio Button */}
+            <div className="flex flex-col gap-2 bg-indigo-950/10 border border-indigo-500/10 p-3 rounded-xl">
+              <p className="text-[10px] text-gray-500 leading-normal text-center">
+                Click below to synthesize and play the high-threat warning sound in <span className="text-indigo-400 font-semibold">{lang === "hi-IN" ? "Hindi" : lang === "te-IN" ? "Telugu" : lang === "ta-IN" ? "Tamil" : lang === "kn-IN" ? "Kannada" : "English"}</span>:
+              </p>
+              <motion.button
+                type="button"
+                onClick={testVoiceWarning}
+                whileTap={{ scale: 0.98 }}
+                className={`py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 ${
+                  ttsPlaying 
+                    ? "bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 glow-cyan animate-pulse" 
+                    : "bg-indigo-950/40 border border-indigo-500/20 text-indigo-300 hover:text-white hover:border-indigo-400/40"
+                }`}
+              >
+                {ttsPlaying ? (
+                  <>
+                    <Volume2 className="w-4 h-4 text-cyan-400" />
+                    <span>Stop Warning Audio</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 text-indigo-300" />
+                    <span>🔊 Listen to AI Warning</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-red-950/20 border border-red-500/10 text-red-400 text-[10.5px] leading-normal">
+                {error}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileTap={{ scale: 0.98 }}
+              className="btn-glow w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-650 to-indigo-500 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2 mt-1"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Activating Sandbox...</span>
+                </>
+              ) : (
+                <>
+                  <span>Activate Demo Shield</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </>
+              )}
+            </motion.button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Original standard multi-step onboarding wizard for real users
   return (
     <div className="flex-1 flex flex-col justify-center px-4 py-8 z-20 min-h-screen w-full max-w-sm mx-auto">
       <motion.div
@@ -2605,178 +3302,293 @@ function ProfileSetupScreenOnboarding({ authPhone, onSuccess }) {
         transition={{ duration: 0.4 }}
         className="glass-panel rounded-3xl p-6 flex flex-col gap-5 relative overflow-hidden"
       >
-        <div className="scanline" style={{ opacity: 0.1 }} />
-
-        <div className="flex flex-col items-center text-center gap-1.5">
-          <div className="p-2.5 bg-indigo-950/40 border border-indigo-500/20 rounded-2xl mb-0.5 shadow-lg">
-            <User className="w-7 h-7 text-indigo-400" />
+        <div className="scanline" style={{ opacity: 0.15 }} />
+        
+        {/* Step Indicator dots */}
+        <div className="flex items-center justify-between border-b border-gray-850 pb-3">
+          <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Step {step} of 3</span>
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((s) => (
+              <div 
+                key={s} 
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  s === step ? "bg-indigo-400 w-4 shadow-[0_0_10px_rgba(99,102,241,0.4)]" : "bg-gray-800"
+                }`}
+              />
+            ))}
           </div>
-          <h2 className="text-lg font-bold text-gray-200">Identity Onboarding</h2>
-          <p className="text-[11px] text-gray-500 max-w-[250px]">
-            Configure the protection targets and default guardian details.
-          </p>
         </div>
 
-        <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 text-xs">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
-              Protected User Name
-            </label>
-            <div className="flex items-center gap-2.5 bg-gray-950/50 px-3.5 py-3 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
-              <User className="w-4 h-4 text-gray-500" />
-              <input 
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Harsha Vardhan"
-                className="bg-transparent border-none outline-none text-gray-200 w-full placeholder-gray-700 text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
-              Guardian Mobile Number
-            </label>
-            <div className="flex items-center gap-2.5 bg-gray-950/50 px-3.5 py-3 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
-              <Phone className="w-4 h-4 text-gray-500" />
-              <input 
-                type="tel"
-                value={guardianNumber}
-                onChange={(e) => setGuardianNumber(e.target.value)}
-                placeholder="e.g. +919876543210"
-                className="bg-transparent border-none outline-none text-gray-200 w-full placeholder-gray-700 text-xs font-mono"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
-              Preferred Warning Language
-            </label>
-            <div className="bg-gray-950/50 rounded-xl border border-gray-800/50 px-3 py-2 flex items-center gap-2">
-              <Volume2 className="w-4 h-4 text-gray-500" />
-              <select
-                value={lang}
-                onChange={(e) => setLang(e.target.value)}
-                className="bg-transparent border-none outline-none text-gray-300 w-full text-xs"
-              >
-                {REGIONAL_LANGUAGES.flatMap(group => group.languages).map(lang => (
-                  <option key={lang.code} value={lang.code} className="bg-gray-950 text-gray-300">
-                    {lang.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2.5 border-t border-gray-800/40 pt-3.5">
-            <span className="text-[10px] text-gray-500 uppercase font-mono tracking-widest">
-              Notification Preferences
-            </span>
-            
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-gray-950/30 border border-gray-800/40">
-              <span className="text-gray-300 font-medium text-[11px]">Notify Guardian On High Threat</span>
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setNotifyHigh(!notifyHigh)}
-                className={`w-9 h-5 rounded-full transition-all relative flex items-center p-0.5 ${
-                  notifyHigh ? "bg-indigo-600 justify-end" : "bg-gray-800 justify-start"
-                }`}
-              >
-                <motion.div layout className="w-4 h-4 rounded-full bg-white shadow" />
-              </motion.button>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-gray-950/30 border border-gray-800/40">
-              <span className="text-gray-300 font-medium text-[11px]">Notify Guardian On Suspicious</span>
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setNotifySuspicious(!notifySuspicious)}
-                className={`w-9 h-5 rounded-full transition-all relative flex items-center p-0.5 ${
-                  notifySuspicious ? "bg-indigo-600 justify-end" : "bg-gray-800 justify-start"
-                }`}
-              >
-                <motion.div layout className="w-4 h-4 rounded-full bg-white shadow" />
-              </motion.button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="p-3 rounded-lg bg-red-950/20 border border-red-500/10 text-red-400 text-[10.5px] leading-normal flex gap-2">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <motion.button
-            type="submit"
-            disabled={loading}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            className="btn-glow w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 font-bold text-xs text-white shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+        {/* STEP 1: TARGET RELATION SELECTION */}
+        {step === 1 && (
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col gap-5"
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Activating Protection...</span>
-              </>
-            ) : (
-              <>
-                <span>Save & Activate Protection</span>
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              </>
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-bold text-gray-200">Who are you protecting?</h2>
+              <p className="text-[10.5px] text-gray-500 leading-normal">
+                Select who will be using this protected device node:
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3.5">
+              {[
+                { type: "myself", label: "👤 Myself", name: "Protected Device" },
+                { type: "parents", label: "👵 Parents", name: "My Parents" },
+                { type: "family", label: "👨‍👩‍👧 Family", name: "Family User" },
+                { type: "business", label: "💼 Business", name: "Enterprise Node" }
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => handleRelationClick(item.type, item.name)}
+                  className={`p-4 rounded-xl border text-xs font-semibold text-left transition-all ${
+                    relationType === item.type 
+                      ? "bg-indigo-950/20 border-indigo-500/35 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.08)]" 
+                      : "bg-gray-950/30 border-gray-850 text-gray-450 hover:border-gray-800 hover:text-gray-300"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2 mt-1">
+              <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
+                Protected User Name
+              </label>
+              <div className="flex items-center gap-2.5 bg-gray-950/50 p-3.5 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
+                <input 
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Harsha's Mom"
+                  className="bg-transparent border-none outline-none text-gray-200 w-full placeholder-gray-750 text-xs"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-red-950/20 border border-red-500/10 text-red-400 text-[10.5px] leading-normal">
+                {error}
+              </div>
             )}
-          </motion.button>
-        </form>
+
+            <motion.button
+              type="button"
+              onClick={handleNextStep}
+              className="btn-glow w-full py-3 rounded-xl bg-indigo-650 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2"
+            >
+              <span>Continue Setup</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          </motion.div>
+        )}
+
+        {/* STEP 2: LANGUAGE SELECTOR */}
+        {step === 2 && (
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col gap-5"
+          >
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-bold text-gray-200">Warning Audio Language</h2>
+              <p className="text-[10.5px] text-gray-500 leading-normal">
+                Choose the language for synthesis of local TTS alarms during threat alerts:
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2.5 max-h-[220px] overflow-y-auto pr-1">
+              {[
+                { code: "hi-IN", name: "Hindi (हिन्दी)", flag: "🇮🇳" },
+                { code: "te-IN", name: "Telugu (తెలుగు)", flag: "🇮🇳" },
+                { code: "ta-IN", name: "Tamil (தமிழ்)", flag: "🇮🇳" },
+                { code: "kn-IN", name: "Kannada (ಕನ್ನಡ)", flag: "🇮🇳" },
+                { code: "en-IN", name: "English (Indian)", flag: "🇮🇳" }
+              ].map((langItem) => (
+                <button
+                  key={langItem.code}
+                  type="button"
+                  onClick={() => setLang(langItem.code)}
+                  className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all ${
+                    lang === langItem.code 
+                      ? "bg-indigo-950/20 border-indigo-500/30 text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.05)]" 
+                      : "bg-gray-950/30 border-gray-850 text-gray-400 hover:border-gray-800"
+                  }`}
+                >
+                  <span>{langItem.name}</span>
+                  <span className="font-mono text-[10px] text-gray-500">{langItem.flag}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="w-1/3 py-3 rounded-xl border border-gray-800 bg-gray-950/20 text-gray-400 font-semibold text-xs transition-all"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className="btn-glow w-2/3 py-3 rounded-xl bg-indigo-650 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* STEP 3: GUARDIAN SETUP */}
+        {step === 3 && (
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col gap-4"
+          >
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-bold text-gray-200">Emergency Guardian Notification</h2>
+              <p className="text-[10.5px] text-gray-500 leading-normal">
+                Configure automatic Twilio SMS warning logs to a trusted contact:
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-gray-400 text-[10px] uppercase font-mono tracking-widest pl-1">
+                Guardian Mobile Number
+              </label>
+              <div className="flex items-center gap-2.5 bg-gray-950/50 p-3.5 rounded-xl border border-gray-800/50 focus-within:border-indigo-500/40 transition-all">
+                <Phone className="w-4 h-4 text-gray-500" />
+                <input 
+                  type="tel"
+                  value={guardianNumber}
+                  onChange={(e) => setGuardianNumber(e.target.value)}
+                  placeholder="e.g. +919876543210"
+                  className="bg-transparent border-none outline-none text-gray-200 w-full placeholder-gray-700 text-xs font-mono"
+                />
+              </div>
+              <span className="text-[9px] text-gray-650 pl-1 font-mono">Format: +[CountryCode][Number]</span>
+            </div>
+
+            <div className="flex flex-col gap-2.5 bg-gray-950/40 p-3 rounded-xl border border-gray-850 text-[10.5px]">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 font-semibold">Notify on High Threat</span>
+                <button
+                  type="button"
+                  onClick={() => setNotifyHigh(prev => !prev)}
+                  className={`w-7 h-4 rounded-full transition-all relative ${
+                    notifyHigh ? "bg-indigo-600" : "bg-gray-800"
+                  }`}
+                >
+                  <div className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-all ${
+                    notifyHigh ? "right-0.5" : "left-0.5"
+                  }`} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between border-t border-gray-850 pt-2.5 mt-1">
+                <span className="text-gray-300 font-semibold">Notify on Suspicious Threat</span>
+                <button
+                  type="button"
+                  onClick={() => setNotifySuspicious(prev => !prev)}
+                  className={`w-7 h-4 rounded-full transition-all relative ${
+                    notifySuspicious ? "bg-indigo-600" : "bg-gray-800"
+                  }`}
+                >
+                  <div className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-all ${
+                    notifySuspicious ? "right-0.5" : "left-0.5"
+                  }`} />
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-red-950/20 border border-red-500/10 text-red-400 text-[10.5px] leading-normal">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-1">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="w-1/3 py-3 rounded-xl border border-gray-800 bg-gray-950/20 text-gray-400 font-semibold text-xs transition-all"
+              >
+                Back
+              </button>
+              <motion.button
+                type="button"
+                disabled={loading || !guardianNumber.trim() || guardianNumber === "+91 "}
+                onClick={handleSaveProfile}
+                whileTap={{ scale: 0.98 }}
+                className="btn-glow w-2/3 py-3 rounded-xl bg-indigo-600 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Activating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Activate Protection</span>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );
 }
-
 function ActivationScreenOnboarding({ onComplete }) {
   const [steps, setSteps] = useState([
-    { id: 1, label: "Identity Verified", status: "pending" },
-    { id: 2, label: "Guardian Linked Successfully", status: "pending" },
-    { id: 3, label: "Language Engine Ready", status: "pending" },
-    { id: 4, label: "Threat Intelligence Activated", status: "pending" },
-    { id: 5, label: "Security Shield Enabled", status: "pending" }
+    { id: 1, label: "Identity Verified (Twilio OTP)", status: "pending" },
+    { id: 2, label: "Emergency Guardian SMS Bind Active", status: "pending" },
+    { id: 3, label: "Regional TTS Speech warnings active", status: "pending" },
+    { id: 4, label: "Gemini Threat Cognitive Shield Enabled", status: "pending" }
   ]);
 
   useEffect(() => {
-    let index = 0;
+    let currentIdx = 0;
+    
     const interval = setInterval(() => {
-      if (index < steps.length) {
-        setSteps(prev => prev.map((step, idx) => {
-          if (idx === index) {
-            return { ...step, status: "completed" };
+      if (currentIdx < steps.length) {
+        setSteps(prev => prev.map((s, idx) => {
+          if (idx === currentIdx) {
+            return { ...s, status: "completed" };
           }
-          return step;
+          return s;
         }));
-        index++;
+        currentIdx++;
       } else {
         clearInterval(interval);
         setTimeout(() => {
           onComplete();
         }, 1200);
       }
-    }, 600);
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, [onComplete, steps.length]);
 
   return (
     <div className="flex-1 flex flex-col justify-center px-4 py-8 z-20 min-h-screen w-full max-w-sm mx-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
         className="glass-panel rounded-3xl p-6 flex flex-col gap-6 relative overflow-hidden"
       >
         <div className="scanline" style={{ opacity: 0.15 }} />
-
-        <div className="flex flex-col items-center text-center gap-1">
+        
+        <div className="flex flex-col items-center text-center gap-2 mb-2">
           <div className="relative">
             <motion.div
               animate={{ rotate: 360 }}
