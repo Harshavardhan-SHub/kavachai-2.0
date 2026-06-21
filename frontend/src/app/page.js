@@ -175,7 +175,7 @@ function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 lg:h-20 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 h-16 lg:h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600/20 to-cyan-600/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-all duration-300">
             <Shield className="w-5 h-5 text-indigo-400" />
@@ -362,7 +362,7 @@ function ProblemSection() {
           The most vulnerable — parents, elderly, and rural communities — are left unprotected.
         </motion.p>
 
-        <motion.div variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <motion.div variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {[
             { ref: stat1.ref, value: `₹${stat1.count}T+`, label: "Lost Annually to Fraud", color: "text-red-400", glow: "shadow-red-500/10" },
             { ref: stat2.ref, value: `${stat2.count}%`, label: "Rise in Voice Scams (YoY)", color: "text-amber-400", glow: "shadow-amber-500/10" },
@@ -433,14 +433,14 @@ function SolutionSection() {
           <SectionBadge icon={Shield} label="The Solution" />
         </motion.div>
 
-        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
           Meet <span className="shimmer-text">Kavach-AI</span>
         </motion.h2>
         <motion.p variants={fadeUp} custom={2} className="text-lg text-gray-400 max-w-2xl mx-auto mb-16 leading-relaxed">
           Your AI-powered shield against digital fraud — scanning, analyzing, and protecting in real-time across 13+ Indian languages.
         </motion.p>
 
-        <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pillars.map((pillar, idx) => (
             <motion.div
               key={idx}
@@ -486,7 +486,7 @@ function FeaturesSection() {
       >
         <motion.div variants={fadeUp} className="text-center">
           <SectionBadge icon={Sparkles} label="Features" />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
             Built for <span className="text-indigo-400">Complete Protection</span>
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-16 leading-relaxed">
@@ -494,7 +494,7 @@ function FeaturesSection() {
           </p>
         </motion.div>
 
-        <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {features.map((feature, idx) => (
             <motion.div
               key={idx}
@@ -562,7 +562,7 @@ function HowItWorksSection() {
           <SectionBadge icon={Radio} label="How It Works" />
         </motion.div>
 
-        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
           Three Steps to <span className="text-cyan-400">Safety</span>
         </motion.h2>
         <motion.p variants={fadeUp} custom={2} className="text-lg text-gray-400 max-w-2xl mx-auto mb-16 leading-relaxed">
@@ -690,7 +690,7 @@ function ScreenshotsSection() {
       >
         <motion.div variants={fadeUp} className="text-center mb-12">
           <SectionBadge icon={Eye} label="Product" />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
             See <span className="text-indigo-400">Kavach</span> in Action
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
@@ -725,7 +725,7 @@ function ScreenshotsSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
-              className="max-w-4xl mx-auto"
+              className="max-w-5xl mx-auto"
             >
               <div className="screenshot-frame">
                 {/* Title bar */}
@@ -782,7 +782,7 @@ function Interactive3DSection() {
       >
         <motion.div variants={fadeUp} className="text-center mb-8">
           <SectionBadge icon={Fingerprint} label="Interactive" />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
             The <span className="shimmer-text">Shield</span> That Protects You
           </h2>
           <p className="text-lg text-gray-400 max-w-xl mx-auto leading-relaxed">
@@ -791,7 +791,7 @@ function Interactive3DSection() {
           </p>
         </motion.div>
 
-        <motion.div variants={scaleIn} custom={1}>
+        <motion.div variants={scaleIn} custom={1} className="max-w-5xl mx-auto">
           <Scene3D />
         </motion.div>
 
@@ -857,7 +857,7 @@ function TestimonialsSection() {
       >
         <motion.div variants={fadeUp} className="text-center mb-16">
           <SectionBadge icon={Star} label="Testimonials" />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
             Loved by <span className="text-amber-400">Real People</span>
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
@@ -933,7 +933,7 @@ function PricingSection() {
           <SectionBadge icon={Zap} label="Pricing" />
         </motion.div>
 
-        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+        <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
           Free During <span className="text-emerald-400">Beta</span>
         </motion.h2>
         <motion.p variants={fadeUp} custom={2} className="text-lg text-gray-400 max-w-xl mx-auto mb-16 leading-relaxed">
@@ -1019,7 +1019,7 @@ function FAQSection() {
       >
         <motion.div variants={fadeUp} className="text-center mb-16">
           <SectionBadge icon={Lock} label="FAQ" />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
             Frequently Asked <span className="text-indigo-400">Questions</span>
           </h2>
         </motion.div>
@@ -1075,7 +1075,7 @@ function FinalCTASection() {
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         variants={staggerContainer}
-        className="text-center max-w-3xl mx-auto"
+        className="text-center max-w-5xl mx-auto"
       >
         <motion.div
           variants={scaleIn}
@@ -1089,7 +1089,7 @@ function FinalCTASection() {
             <motion.div variants={fadeUp}>
               <Shield className="w-12 h-12 text-indigo-400 mx-auto mb-6" />
             </motion.div>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight">
               Start Protecting Your Family <span className="text-indigo-400">Today</span>
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-lg text-gray-400 mb-10 leading-relaxed max-w-xl mx-auto">
@@ -1133,7 +1133,7 @@ function Footer() {
 
   return (
     <footer className="footer-section relative py-16 px-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Top row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
           <div className="flex items-center gap-3">

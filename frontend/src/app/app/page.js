@@ -462,9 +462,46 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setIncidentHistory(data);
+      } else {
+        throw new Error("API returned non-ok status");
       }
     } catch (err) {
-      console.error("Failed to load history", err);
+      console.warn("Failed to load history from backend, loading sandbox fallback history.", err);
+      setIncidentHistory([
+        {
+          id: "h1",
+          risk_level: "HIGH",
+          timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+          threat_score: 94,
+          input_type: "SMS",
+          threat_type: "Credential Phishing / Bank Scam",
+          original_text: "Y0UR SBI BANK ACCOUT HAS BEEN SUSPENDED. PLZ UPDATE YOUR KYC AT LINK http://sbi-verify-kyc.in IMMEDIATELY TO AVOID BLOCKING.",
+          audio_warning_played: "Hindi Warning Played",
+          sms_status: "Sent"
+        },
+        {
+          id: "h2",
+          risk_level: "SUSPICIOUS",
+          timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
+          threat_score: 72,
+          input_type: "Voice Call",
+          threat_type: "Urgency Pressure Scam",
+          original_text: "Hello, I am calling from electricity board. Your bill of Rs 4500 is pending. If you don't pay in 10 minutes, power will be disconnected.",
+          audio_warning_played: "Telugu Warning Played",
+          sms_status: "Not Sent"
+        },
+        {
+          id: "h3",
+          risk_level: "SAFE",
+          timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+          threat_score: 12,
+          input_type: "SMS",
+          threat_type: "Legitimate Transaction",
+          original_text: "Your account ending with XX1234 has been credited with Rs 5000. Ref no: 4321098. Thank you for using HDFC Bank.",
+          audio_warning_played: "None",
+          sms_status: "Not Sent"
+        }
+      ]);
     }
   };
 
@@ -836,9 +873,10 @@ export default function Home() {
     if (confirm("Are you sure you want to clear incident logs?")) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/history`, { method: "DELETE" });
-        if (res.ok) setIncidentHistory([]);
+        setIncidentHistory([]);
       } catch (e) {
-        console.error(e);
+        console.error("Failed to clear backend history, clearing local UI state instead.", e);
+        setIncidentHistory([]);
       }
     }
   };
@@ -906,14 +944,7 @@ export default function Home() {
         {appState === "splash" && (
           <SplashScreenOnboarding 
             key="splash-screen"
-            onComplete={() => setAppState("landing")} 
-          />
-        )}
-
-        {appState === "landing" && (
-          <LandingPageShowcase 
-            key="landing-page"
-            onLaunchDemo={handleLaunchDemo}
+            onComplete={handleLaunchDemo} 
           />
         )}
 
