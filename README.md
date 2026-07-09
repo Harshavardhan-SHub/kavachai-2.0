@@ -203,7 +203,7 @@ Below are actual visual screens showcasing the Kavach-AI device protection panel
 * **Krishnasaivarmakalidindi**
 
 **Developed for:**
-* **HackPrix Season 3**
+* **Takeover Hackathon - NIAT**
 
 ---
 
