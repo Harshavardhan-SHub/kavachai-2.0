@@ -100,7 +100,7 @@ async def analyze_text_threat(text: str) -> dict:
         print("[MOCK SERVICE] Using rule-based threat analysis fallback.")
         return get_rule_based_fallback(text)
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={GEMINI_API_KEY}"
     
     system_instruction = (
         "You are an expert fraud intelligence system specialized in Indian communication patterns. "

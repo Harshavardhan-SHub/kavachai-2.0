@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Real-Time Fraud & Social Engineering Protection with Voice Warning & Guardian Alerts",
   "scripts": {
-    "frontend:dev": "npm run dev --prefix frontend",
-    "frontend:build": "npm run build --prefix frontend",
-    "frontend:start": "npm start --prefix frontend",
     "backend:dev": "cd backend && python -m uvicorn app.main:app --reload",
     "backend:start": "cd backend && python -m uvicorn app.main:app"
   },
