@@ -1,6 +1,6 @@
 import logging
 import httpx
-from app.config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID, USE_MOCK_VERIFY
+from backend.app.config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID, USE_MOCK_VERIFY
 
 logger = logging.getLogger("auth_service")
 

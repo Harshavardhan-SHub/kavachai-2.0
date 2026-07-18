@@ -1,17 +1,42 @@
+import logging
 import os
+import time
 from typing import Optional
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, status
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.config import PORT, HOST
-from app.services.sarvam_service import speech_to_text, translate_text, generate_warning_speech
-from app.services.gemini_service import analyze_text_threat
-from app.services.guardian_service import send_guardian_notification
-from app.services.auth_service import send_verification_otp, check_verification_otp
-from app.database import local_db
+from backend.app.config import PORT, HOST
+from backend.app.services.sarvam_service import speech_to_text, translate_text, generate_warning_speech
+from backend.app.services.gemini_service import analyze_text_threat
+from backend.app.services.guardian_service import send_guardian_notification
+from backend.app.services.auth_service import send_verification_otp, check_verification_otp
+from backend.app.database import local_db
 
 app = FastAPI(title="Kavach-AI Fraud Intelligence Engine API", version="1.0.0")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("backend-service")
+
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        logger.info(f"Incoming Request: {request.method} {request.url.path}")
+
+        try:
+            response = await call_next(request)
+            duration = (time.time() - start_time) * 1000
+            logger.info(f"Completed Request: {response.status_code} in {duration:.2f}ms")
+            return response
+        except Exception as exc:
+            duration = (time.time() - start_time) * 1000
+            logger.error(f"Failed Request: {exc} in {duration:.2f}ms", exc_info=True)
+            raise
 
 # Enable CORS for Next.js development server
 app.add_middleware(
@@ -22,8 +47,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(LoggingMiddleware)
+
 # Initialize local JSON database
 local_db.init_db()
+
+
+@app.on_event("startup")
+def log_startup() -> None:
+    logger.info(f"Backend service starting on {HOST}:{PORT}")
 
 
 class SendOtpRequest(BaseModel):
@@ -65,8 +97,13 @@ class GuardianNotificationRequest(BaseModel):
     logged_id: Optional[str] = None
 
 
-@app.get("/api/health")
+@app.get("/health")
 def health_check():
+    return {"status": "healthy"}
+
+
+@app.get("/api/health")
+def legacy_health_check():
     return {"status": "healthy", "service": "kavach-ai-backend"}
 
 
@@ -322,4 +359,4 @@ def get_user_profile(phone_number: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+    uvicorn.run("backend.app.main:app", host=HOST, port=PORT, reload=True)

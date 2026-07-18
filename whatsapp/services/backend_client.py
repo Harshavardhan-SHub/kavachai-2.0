@@ -1,6 +1,9 @@
 import httpx
+import logging
 from typing import Dict, Any, Optional, List
 from whatsapp.config import settings
+
+logger = logging.getLogger("backend-client")
 
 class BackendClient:
     def __init__(self, base_url: str = settings.BACKEND_URL):
@@ -9,10 +12,14 @@ class BackendClient:
     async def health(self) -> Dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(f"{self.base_url}/api/health")
+                response = await client.get(f"{self.base_url}/health")
                 return response.json()
             except Exception as e:
-                return {"status": "unhealthy", "error": str(e)}
+                try:
+                    response = await client.get(f"{self.base_url}/api/health")
+                    return response.json()
+                except Exception:
+                    return {"status": "unhealthy", "error": str(e)}
 
     async def get_profile(self, phone_number: str) -> Optional[Dict[str, Any]]:
         async with httpx.AsyncClient() as client:

@@ -2,12 +2,12 @@ import asyncio
 import os
 import sys
 
-# Add the backend folder to path so imports work
-sys.path.append(os.path.dirname(__file__))
+# Ensure project root is on the path so 'backend.app' is importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.sarvam_service import translate_text
-from app.services.gemini_service import analyze_text_threat
-from app.services.scoring_service import classify_threat
+from backend.app.services.sarvam_service import translate_text
+from backend.app.services.gemini_service import analyze_text_threat
+from backend.app.services.scoring_service import classify_threat
 
 async def test_cases():
     print("==================================================")

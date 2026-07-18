@@ -21,12 +21,12 @@ def verify_webhook(
     GET /webhook
     Verification endpoint for Meta WhatsApp Cloud API webhooks.
     """
-    logger.info("Received verification request from Meta WhatsApp API.")
+    logger.info("[Webhook] Verification request received — mode=%s", hub_mode)
     if hub_mode == "subscribe" and hub_verify_token == settings.WHATSAPP_VERIFY_TOKEN:
-        logger.info("Webhook verified successfully.")
+        logger.info("[Webhook] Verification successful — challenge returned.")
         return hub_challenge
-        
-    logger.warning("Webhook verification token mismatch or invalid mode.")
+
+    logger.warning("[Webhook] Verification FAILED — token mismatch or wrong mode.")
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Verification token mismatch."
@@ -42,7 +42,7 @@ async def receive_webhook_payload(
     POST /webhook
     Receives incoming WhatsApp events, validates Meta signature, and processes messages.
     """
-    logger.info("Received incoming message event from Meta WhatsApp API.")
+    logger.info("[Webhook] Incoming request from Meta Cloud API.")
 
     # Meta webhook payload contains an 'entry' list
     entries = payload.get("entry", [])
@@ -50,13 +50,41 @@ async def receive_webhook_payload(
         changes = entry.get("changes", [])
         for change in changes:
             value = change.get("value", {})
+
+            # Skip status update events (delivery receipts, read receipts)
+            # These have no 'messages' key — processing them would be a no-op
+            # but logging them helps confirm the webhook is receiving traffic.
+            if "statuses" in value and "messages" not in value:
+                statuses = value.get("statuses", [])
+                for s in statuses:
+                    logger.info(
+                        "[Webhook] Status update — message_id=%s status=%s",
+                        s.get("id"), s.get("status")
+                    )
+                continue
+
             messages = value.get("messages", [])
-            
             for msg in messages:
+                sender = msg.get("from", "unknown")
+                msg_type = msg.get("type", "unknown")
+                msg_id = msg.get("id", "unknown")
+
+                # Extract preview of text for logging
+                text_preview = ""
+                if msg_type == "text":
+                    text_preview = msg.get("text", {}).get("body", "")[:80]
+
+                logger.info(
+                    "[Webhook] User message — from=%s type=%s id=%s text_preview=%r",
+                    sender, msg_type, msg_id, text_preview
+                )
+
                 try:
-                    # Pass incoming message payload to message router
                     await message_router.route_incoming_message(msg)
                 except Exception as e:
-                    logger.error(f"Error processing message: {str(e)}", exc_info=True)
+                    logger.error(
+                        "[Webhook] Error processing message id=%s: %s",
+                        msg_id, str(e), exc_info=True
+                    )
 
     return {"status": "event_received"}
