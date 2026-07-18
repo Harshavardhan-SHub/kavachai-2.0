@@ -9,14 +9,15 @@ class DocumentHandler:
     async def handle_document_scan(self, to: str, media_id: str, filename: str, session: UserSession):
         await whatsapp_service.send_text(to, f"📄 Document '{filename}' received. Parsing contents...")
 
-        # 1. Download document to temporary local file
-        temp_file = await media_service.download_media_temp(media_id, suffix=".pdf")
-        if not temp_file:
-            await whatsapp_service.send_text(to, "❌ Failed to download document from WhatsApp.")
-            return
-
         try:
-            # 2. Extract text (Simulate text extraction for PDF/Word files from temp_file)
+            # 1. Download document from WhatsApp
+            doc_bytes = await media_service.download_media(media_id)
+            if not doc_bytes:
+                await whatsapp_service.send_text(to, "❌ Failed to download document from WhatsApp.")
+                return
+
+            # 2. Extract text (Simulate text extraction for PDF/Word files in the interface layer)
+            # Default to standard text scam for verification simulation
             extracted_text = "आपका बिजली कनेक्शन आज रात काट दिया जाएगा। तुरंत 2000 रुपये का भुगतान इस खाते में करें।"
             
             await whatsapp_service.send_text(to, "📝 *Extracted Document Contents:* Running threat evaluation...")
@@ -61,8 +62,5 @@ class DocumentHandler:
         except Exception as e:
             print(f"Error in Document Handler: {e}")
             await whatsapp_service.send_text(to, f"❌ Failed to process document '{filename}'.")
-        finally:
-            # 7. Delete temporary file after processing
-            media_service.delete_temp_file(temp_file)
 
 document_handler = DocumentHandler()

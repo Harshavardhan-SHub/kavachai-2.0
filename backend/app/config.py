@@ -1,11 +1,8 @@
 import os
-from pathlib import Path
 from dotenv import load_dotenv
 
-# Resolve .env relative to this file so it works regardless of cwd.
-# backend/app/config.py → two levels up → project root → .env
-_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(dotenv_path=_ENV_PATH)
+# Load env variables from .env file
+load_dotenv()
 
 # API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

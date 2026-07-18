@@ -1,6 +1,6 @@
 import logging
 import httpx
-from backend.app.config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, USE_MOCK_TWILIO
+from app.config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, USE_MOCK_TWILIO
 
 logger = logging.getLogger("guardian_service")
 

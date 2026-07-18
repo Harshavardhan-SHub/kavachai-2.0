@@ -1,11 +1,19 @@
 {
-  "name": "kavach-ai",
-  "version": "1.0.0",
-  "description": "Real-Time Fraud & Social Engineering Protection with Voice Warning & Guardian Alerts",
+  "name": "kavach-shield",
+  "version": "2.5.0",
+  "description": "Kavach AI – Conversational AI Fraud Protection Assistant",
   "scripts": {
-    "backend:dev": "cd backend && python -m uvicorn app.main:app --reload",
-    "backend:start": "cd backend && python -m uvicorn app.main:app"
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --port 8000",
+    "dev:whatsapp": "python -m uvicorn whatsapp.app:app --reload --port 8001",
+    "install:all": "cd frontend && npm install"
   },
-  "author": "Harshavardhan-SHub, Krishnasaivarmakalidindi",
+  "keywords": [
+    "security",
+    "anti-fraud",
+    "whatsapp",
+    "conversational-ai"
+  ],
+  "author": "Kavach AI Team",
   "license": "MIT"
 }

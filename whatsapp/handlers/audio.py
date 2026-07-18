@@ -9,17 +9,15 @@ class AudioHandler:
     async def handle_audio_scan(self, to: str, media_id: str, session: UserSession):
         await whatsapp_service.send_text(to, "🎤 Audio voice note received. Transcribing regional audio...")
 
-        # 1. Download voice note to temporary local file
-        temp_file = await media_service.download_media_temp(media_id, suffix=".ogg")
-        if not temp_file:
-            await whatsapp_service.send_text(to, "❌ Failed to download audio from WhatsApp.")
-            return
-
         try:
-            # 2. Read file contents and forward to backend translate-input
-            with open(temp_file, "rb") as f:
-                audio_bytes = f.read()
+            # 1. Download voice note bytes from WhatsApp
+            audio_bytes = await media_service.download_media(media_id)
+            if not audio_bytes:
+                await whatsapp_service.send_text(to, "❌ Failed to download audio from WhatsApp.")
+                return
 
+            # 2. Call backend translate-input with audio file bytes
+            # The backend handles speech transcription and translates it into English
             filename = f"voice_input_{media_id}.ogg"
             translation_result = await backend_client.translate_input(
                 file_content=audio_bytes,
@@ -68,8 +66,5 @@ class AudioHandler:
         except Exception as e:
             print(f"Error in Audio Handler: {e}")
             await whatsapp_service.send_text(to, "❌ Failed to process voice note translation.")
-        finally:
-            # 6. Delete temporary file after processing
-            media_service.delete_temp_file(temp_file)
 
 audio_handler = AudioHandler()

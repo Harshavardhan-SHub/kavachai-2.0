@@ -1,7 +1,7 @@
 import base64
 import httpx
 from fastapi import HTTPException
-from backend.app.config import SARVAM_API_KEY, USE_MOCK_SARVAM
+from app.config import SARVAM_API_KEY, USE_MOCK_SARVAM
 
 # Pre-defined translations for common Indic demo inputs
 INDIC_TRANSLATIONS = {

@@ -1,69 +1,30 @@
-# System / OS Files
-.DS_Store
-Thumbs.db
-*.tmp
-*.log
-
-# Local Environment Secrets & Configs
-.env
-.env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
-backend/.env
-frontend/.env
-
-# Dependencies & Package Managers
+# Node modules
 node_modules/
-frontend/node_modules/
-jspm_packages/
-.pnp
-.pnp.js
-
-# Build Directories & Bundler Outputs
-.next/
-frontend/.next/
-out/
-frontend/out/
-build/
-frontend/build/
 dist/
-.vercel/
-.cache/
+dist-ssr/
+*.local
 
-# Python (Backend) Caches & Environments
+# Python env
+venv/
+.venv/
 __pycache__/
-backend/__pycache__/
 *.pyc
 *.pyo
 *.pyd
-.pytest_cache/
-backend/.pytest_cache/
-.venv/
-venv/
+.Python
 env/
-backend/.venv/
-backend/venv/
-backend/env/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Databases & Cache Files
-backend/data/*.json
-*.sqlite
-*.db
+# Local files & databases
+.env
+.env*.local
+backend/data/
+data/
+temp_ref/
 
-# Test Coverage & Logs
-coverage/
-.nyc_output/
+# Logs
 *.log
-
-# IDE & Editor Settings
-.gemini/
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

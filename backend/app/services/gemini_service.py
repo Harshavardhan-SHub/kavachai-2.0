@@ -1,8 +1,8 @@
 import json
 import httpx
 from fastapi import HTTPException
-from backend.app.config import GEMINI_API_KEY, USE_MOCK_GEMINI
-from backend.app.services.scoring_service import classify_threat
+from app.config import GEMINI_API_KEY, USE_MOCK_GEMINI
+from app.services.scoring_service import classify_threat
 
 def get_rule_based_fallback(text: str) -> dict:
     """
@@ -39,7 +39,7 @@ def get_rule_based_fallback(text: str) -> dict:
             ],
             "recommended_action": "This communication appears suspicious. Verify sender identity before responding."
         }
-        
+    
     # Case 3: High Threat Message
     elif "electricity" in text_lower or "disconnect" in text_lower or "electricity bill" in text_lower or "power cut" in text_lower or "rupees" in text_lower or "transfer" in text_lower or "immediately" in text_lower:
         return {
@@ -150,8 +150,8 @@ async def analyze_text_threat(text: str) -> dict:
                     return result
                 elif response.status_code == 400:
                     raise HTTPException(
-                        status_code=400,
-                        detail=f"Gemini API returned 400: {response.text}"
+                      status_code=400,
+                      detail=f"Gemini API returned 400: {response.text}"
                     )
                 else:
                     print(f"[API ERROR] Gemini API returned status {response.status_code} (attempt {attempt+1}): {response.text}")
