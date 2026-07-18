@@ -1,23 +1,15 @@
-import sys
-import os
-
-# Ensure backend directory is in python path
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-_parent_dir = os.path.dirname(_current_dir)
-if _parent_dir not in sys.path:
-    sys.path.insert(0, _parent_dir)
-
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.config import PORT, HOST
-from app.services.sarvam_service import speech_to_text, translate_text, generate_warning_speech
-from app.services.gemini_service import analyze_text_threat
-from app.services.guardian_service import send_guardian_notification
-from app.services.auth_service import send_verification_otp, check_verification_otp
-from app.database import local_db
+from backend.app.config import PORT, HOST
+from backend.app.services.sarvam_service import speech_to_text, translate_text, generate_warning_speech
+from backend.app.services.gemini_service import analyze_text_threat
+from backend.app.services.guardian_service import send_guardian_notification
+from backend.app.services.auth_service import send_verification_otp, check_verification_otp
+from backend.app.database import local_db
+from whatsapp.webhook import router as whatsapp_webhook_router
 
 app = FastAPI(title="Kavach-AI Fraud Intelligence Engine API", version="1.0.0")
 
@@ -32,6 +24,9 @@ app.add_middleware(
 
 # Initialize local JSON database
 local_db.init_db()
+
+# Mount WhatsApp webhook router
+app.include_router(whatsapp_webhook_router)
 
 
 class SendOtpRequest(BaseModel):

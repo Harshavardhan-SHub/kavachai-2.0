@@ -67,8 +67,14 @@ class WhatsAppService:
     async def _send_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         # If we are using mock tokens, we print the payload and return successfully
         if "MOCK" in self.token or not self.token:
-            print(f"[MOCK WHATSAPP OUTGOING PAYLOAD to {payload.get('to')}]:")
-            print(payload)
+            try:
+                print(f"[MOCK WHATSAPP OUTGOING PAYLOAD to {payload.get('to')}]:")
+                print(payload)
+            except UnicodeEncodeError:
+                import json
+                clean_payload = json.dumps(payload, ensure_ascii=True)
+                print(f"[MOCK WHATSAPP OUTGOING PAYLOAD (ASCII Fallback) to {payload.get('to')}]:")
+                print(clean_payload)
             return {"status": "mock_sent", "payload": payload}
 
         headers = {

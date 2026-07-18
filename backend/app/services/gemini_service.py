@@ -1,8 +1,8 @@
 import json
 import httpx
 from fastapi import HTTPException
-from app.config import GEMINI_API_KEY, USE_MOCK_GEMINI
-from app.services.scoring_service import classify_threat
+from backend.app.config import GEMINI_API_KEY, USE_MOCK_GEMINI
+from backend.app.services.scoring_service import classify_threat
 
 def get_rule_based_fallback(text: str) -> dict:
     """
