@@ -1,6 +1,9 @@
+import logging
 import httpx
 from typing import List, Dict, Any, Optional
 from whatsapp.config import settings
+
+logger = logging.getLogger("whatsapp-service")
 
 class WhatsAppService:
     def __init__(self, token: str = settings.WHATSAPP_TOKEN, phone_number_id: str = settings.WHATSAPP_PHONE_NUMBER_ID):
@@ -64,10 +67,52 @@ class WhatsAppService:
         }
         return await self._send_request(payload)
 
+    async def send_document(self, to: str, document_url: str, filename: str) -> Dict[str, Any]:
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "document",
+            "document": {
+                "link": document_url,
+                "filename": filename
+            }
+        }
+        return await self._send_request(payload)
+
+    async def send_image(self, to: str, image_url: str, caption: Optional[str] = None) -> Dict[str, Any]:
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "image",
+            "image": {
+                "link": image_url
+            }
+        }
+        if caption:
+            payload["image"]["caption"] = caption
+        return await self._send_request(payload)
+
+    async def mark_as_read(self, message_id: str) -> Dict[str, Any]:
+        payload = {
+            "messaging_product": "whatsapp",
+            "status": "read",
+            "message_id": message_id
+        }
+        return await self._send_request(payload)
+
     async def _send_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        # If we are using mock tokens, we print the payload and return successfully
+        recipient = payload.get("to", payload.get("message_id", "unknown"))
+
+        # If we are using mock tokens, log the payload and return successfully
         if "MOCK" in self.token or not self.token:
-            print(f"[MOCK WHATSAPP OUTGOING PAYLOAD to {payload.get('to')}]:")
+            logger.warning(
+                "[WhatsApp] MOCK mode active — message NOT sent to Meta API. "
+                "Set WHATSAPP_TOKEN in whatsapp/.env to send real messages. "
+                "Recipient: %s", recipient
+            )
+            print(f"[MOCK WHATSAPP OUTGOING PAYLOAD to {recipient}]:")
             print(payload)
             return {"status": "mock_sent", "payload": payload}
 
@@ -75,16 +120,24 @@ class WhatsAppService:
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
         }
+
+        logger.info("[WhatsApp] Sending reply to %s via Meta Cloud API...", recipient)
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(self.base_url, json=payload, headers=headers)
                 response.raise_for_status()
-                return response.json()
+                result = response.json()
+                logger.info("[WhatsApp] Message sent successfully to %s — response: %s", recipient, result)
+                return result
             except httpx.HTTPStatusError as e:
-                print(f"WhatsApp API Error status {e.response.status_code}: {e.response.text}")
+                logger.error(
+                    "[WhatsApp] API error sending to %s — HTTP %s: %s",
+                    recipient, e.response.status_code, e.response.text
+                )
                 return {"status": "error", "detail": e.response.text}
             except Exception as e:
-                print(f"WhatsApp API connection error: {e}")
+                logger.error("[WhatsApp] Connection error sending to %s: %s", recipient, str(e))
                 return {"status": "error", "detail": str(e)}
 
 whatsapp_service = WhatsAppService()

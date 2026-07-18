@@ -2,10 +2,11 @@ import asyncio
 import os
 import sys
 
-sys.path.append(os.path.dirname(__file__))
+# Ensure project root is on the path so 'backend.app' is importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.guardian_service import send_guardian_notification
-from app.config import TWILIO_ACCOUNT_SID, TWILIO_PHONE_NUMBER, USE_MOCK_TWILIO
+from backend.app.services.guardian_service import send_guardian_notification
+from backend.app.config import TWILIO_ACCOUNT_SID, TWILIO_PHONE_NUMBER, USE_MOCK_TWILIO
 
 async def test_twilio():
     print("==================================================")
